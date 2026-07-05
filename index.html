@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening Bybit...</title>
+</head>
+<body style="font-family:sans-serif;text-align:center;padding:40px">
+<p id="status">Opening Bybit app...</p>
+<p id="links" style="display:none"></p>
+<script>
+(function () {
+  var target = new URLSearchParams(location.search).get("u") || "";
+  if (!target || (target.indexOf("bybit://") !== 0 && target.indexOf("https://") !== 0)) {
+    document.getElementById("status").textContent = "Bad request: missing or invalid u parameter";
+    return;
+  }
+  var rest = target.indexOf("://") >= 0 ? target.split("://", 2)[1] : target;
+  var pathQ = rest.split("#", 1)[0];
+  var path = pathQ.split("?", 1)[0];
+  var query = pathQ.indexOf("?") >= 0 ? pathQ.split("?", 2)[1] : "";
+  var prefixes = ["www.bybit.com/", "bybit.com/"];
+  for (var i = 0; i < prefixes.length; i++) {
+    if (path.indexOf(prefixes[i]) === 0) {
+      path = path.slice(prefixes[i].length);
+      break;
+    }
+  }
+  path = path.replace(/^\/+|\/+$/g, "");
+  if (!/^trade\/[a-z]+\/[A-Za-z0-9]+$/.test(path)) {
+    document.getElementById("status").textContent = "Bad request: unrecognized target";
+    return;
+  }
+  var interval = "";
+  var m = query.match(/(?:^|&)interval=([0-9A-Za-z]{1,4})(?:&|$)/);
+  if (m) {
+    interval = m[1];
+  }
+  var suffix = interval ? "?interval=" + interval : "";
+  var webUrl = "https://www.bybit.com/" + path + suffix;
+  var fallbackEnc = encodeURIComponent(webUrl);
+  var intentUrl =
+    "intent://www.bybit.com/" + path + suffix +
+    "#Intent;scheme=https;package=com.bybit.app;S.browser_fallback_url=" +
+    fallbackEnc + ";end";
+  var links = document.getElementById("links");
+  links.innerHTML =
+    '<a href="' + intentUrl + '">Open in Bybit app</a><br>' +
+    '<a href="' + webUrl + '">Open website instead</a>';
+  links.style.display = "block";
+  window.location.href = intentUrl;
+})();
+</script>
+</body>
+</html>
