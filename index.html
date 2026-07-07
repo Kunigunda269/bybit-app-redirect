@@ -10,6 +10,10 @@
 <p id="links" style="display:none"></p>
 <script>
 (function () {
+  // Android App Links on com.bybit.app verify app.bybit.com (NOT www) — see
+  // Settings → Apps → Bybit → Open by default → Supported links.
+  var APP_HOST = "app.bybit.com";
+  var WEB_HOST = "www.bybit.com";
   var target = new URLSearchParams(location.search).get("u") || "";
   if (!target || (target.indexOf("bybit://") !== 0 && target.indexOf("https://") !== 0)) {
     document.getElementById("status").textContent = "Bad request: missing or invalid u parameter";
@@ -19,7 +23,10 @@
   var pathQ = rest.split("#", 1)[0];
   var path = pathQ.split("?", 1)[0];
   var query = pathQ.indexOf("?") >= 0 ? pathQ.split("?", 2)[1] : "";
-  var prefixes = ["www.bybit.com/", "bybit.com/"];
+  var prefixes = [
+    "www.bybit.com/", "bybit.com/", "app.bybit.com/",
+    "go.bybit.com/", "mobile.bybit.com/"
+  ];
   for (var i = 0; i < prefixes.length; i++) {
     if (path.indexOf(prefixes[i]) === 0) {
       path = path.slice(prefixes[i].length);
@@ -37,15 +44,17 @@
     interval = m[1];
   }
   var suffix = interval ? "?interval=" + interval : "";
-  var webUrl = "https://www.bybit.com/" + path + suffix;
+  var appUrl = "https://" + APP_HOST + "/" + path + suffix;
+  var webUrl = "https://" + WEB_HOST + "/" + path + suffix;
   var fallbackEnc = encodeURIComponent(webUrl);
   var intentUrl =
-    "intent://www.bybit.com/" + path + suffix +
+    "intent://" + APP_HOST + "/" + path + suffix +
     "#Intent;scheme=https;package=com.bybit.app;S.browser_fallback_url=" +
     fallbackEnc + ";end";
   var links = document.getElementById("links");
   links.innerHTML =
     '<a href="' + intentUrl + '">Open in Bybit app</a><br>' +
+    '<a href="' + appUrl + '">Open app link</a><br>' +
     '<a href="' + webUrl + '">Open website instead</a>';
   links.style.display = "block";
   window.location.href = intentUrl;
